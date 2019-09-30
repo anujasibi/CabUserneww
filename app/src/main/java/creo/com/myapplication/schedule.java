@@ -33,6 +33,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,6 +53,7 @@ public class schedule extends AppCompatActivity {
     private long date;
     private DateFormat format;
     String currentDateandTime;
+    private SavedAdapter savedAdapter;
     private SlidingUpPanelLayout mLayout;
     EditText editText;
     CardView cardView,card;
@@ -62,7 +64,9 @@ public class schedule extends AppCompatActivity {
     Context context=this;
     String phone_no = null;
     TextView set_date,set_time;
+    ArrayList<SavedPojo> save;
     private String URLline = Global.BASE_URL+"user/schedule_trip/";
+    private String URLlinen = Global.BASE_URL+"user/get_favorite/";
     private ProgressDialog dialog ;
 
     @SuppressLint("WrongConstant")
@@ -75,11 +79,12 @@ public class schedule extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         dialog=new ProgressDialog(schedule.this,R.style.MyAlertDialogStyle);
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        final ArrayList<SlidingPojo>pojo = new ArrayList<>();
-        SlidingPojo slidingPojo = new SlidingPojo("kottayam");
+        passlatlong();
+      //  final ArrayList<SlidingPojo>pojo = new ArrayList<>();
+        /*SlidingPojo slidingPojo = new SlidingPojo("kottayam");
         SlidingPojo slidingPojo1 = new SlidingPojo("kochi");
         pojo.add(slidingPojo);
-        pojo.add(slidingPojo1);
+        pojo.add(slidingPojo1);*/
 //        final SlidingPojo[] slidingPojo = new SlidingPojo[]{
 //                new SlidingPojo("Kaloor"),
 //                new SlidingPojo("Kottayam"),
@@ -110,7 +115,7 @@ public class schedule extends AppCompatActivity {
             }
         });
         recyclerView = findViewById(R.id.re);
-        SlidingAdapter slidingAdapter = new SlidingAdapter(pojo,mContext);
+        /*SlidingAdapter slidingAdapter = new SlidingAdapter(pojo,mContext);
 
         recyclerView.setAdapter(slidingAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
@@ -120,7 +125,7 @@ public class schedule extends AppCompatActivity {
                 Toast.makeText(schedule.this,"You clicked"+pojo.get(position).getName(),Toast.LENGTH_SHORT).show();
                 editText.setText(pojo.get(position).getName());
             }
-        });
+        });*/
 
 
         editText=findViewById(R.id.whereto);
@@ -132,7 +137,7 @@ public class schedule extends AppCompatActivity {
             }
         });
         cardView=findViewById(R.id.carder);
-        card=findViewById(R.id.cau);
+
 
         cardView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -140,15 +145,9 @@ public class schedule extends AppCompatActivity {
                 startActivity(new Intent(schedule.this,PLACE.class));
             }
         });
-        card.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(schedule.this,workplace.class));
-            }
-        });
 
        textView=findViewById(R.id.teb);
-       text=findViewById(R.id.work);
+
        Log.d("cllll","api"+Apiclient.place_name+editText.getText().toString());
        // String s=getIntent().getStringExtra("name");
         if(!(Apiclient.place_name.equals("null"))) {
@@ -386,8 +385,103 @@ public class schedule extends AppCompatActivity {
         requestQueue.add(stringRequest);
 
     }
+    private void passlatlong(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, URLlinen,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        dialog.dismiss();
+                        Toast.makeText(schedule.this,response,Toast.LENGTH_LONG).show();
+                        //parseData(response);
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            String ot = jsonObject.optString("message");
+                            String status=jsonObject.optString("places");
 
+                            Log.d("otp","mm"+ot);
+
+
+                            Toast.makeText(schedule.this, ot, Toast.LENGTH_LONG).show();
+                            //  JSONObject obj = new JSONObject(response);
+
+
+
+
+
+                            save = new ArrayList<>();
+                            //   JSONObject jsonObject1=jsonObject.getJSONObject("places");
+                            Log.d("data","mm"+status);
+                            JSONArray dataArray  = new JSONArray(status);
+                            JSONObject jsonObject4 = dataArray.optJSONObject(0);
+
+                            // Log.d("fieldcab","mm"+fieldcab);
+
+                            for (int i = 0; i < dataArray.length(); i++) {
+
+                                SavedPojo playerModel = new SavedPojo();
+                                JSONObject dataobj = dataArray.getJSONObject(i);
+                                JSONObject fieldcab = dataobj.optJSONObject("fields");
+                                playerModel.setName(fieldcab.getString("place_name"));
+                                //    playerModel.setLatitude(fieldcab.getString("latitude"));
+                                //    playerModel.setLongitude(fieldcab.getString("longitude"));
+                                //  playerModel.setRat(dataobj.getString(""));
+
+
+                                save.add(playerModel);
+
+
+
+                                setupRecycler();
+
+                            }
+
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Log.d("response","hhh"+response);
+
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(schedule.this,error.toString(),Toast.LENGTH_LONG).show();
+                    }
+                }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Authorization", "Token "+sessionManager.getTokens());
+                return params;
+            }
+
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        requestQueue.add(stringRequest);
+
+    }
+    @SuppressLint("WrongConstant")
+    private void setupRecycler(){
+
+        savedAdapter = new SavedAdapter(this,save);
+        recyclerView.setAdapter(savedAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
+        ItemClickSupport.addTo(recyclerView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                Toast.makeText(schedule.this,"You clicked"+save.get(position).getName(),Toast.LENGTH_SHORT).show();
+                editText.setText(save.get(position).getName());
+            }
+        });
+
+    }
 }
+
+
+
 
    
 

@@ -220,35 +220,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/teb"
-                android:text="Add Home"
-                android:hint="Add Home"
+                android:text="Add New Place"
+                android:hint="Add New Place"
                 android:textColorHint="#000"
                 android:textAlignment="center"
                 android:layout_gravity="center_vertical"
                 android:textColor="#000"/>
 
         </androidx.cardview.widget.CardView>
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_marginLeft="10dp"
-            android:id="@+id/cau"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="10dp"
-            sothree:cardElevation="10dp"
-            android:layout_height="50dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/work"
-                android:text="Add Work Place"
-                android:hint="Add Work Place"
-                android:textColorHint="#000"
-                android:textAlignment="center"
-                android:layout_gravity="center_vertical"
-                android:textColor="#000"/>
-
-        </androidx.cardview.widget.CardView>
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:id="@+id/re"
